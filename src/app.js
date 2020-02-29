@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const { NODE_ENV } = require("./config");
-const FolderService = require("./folder-service");
+const FolderRouter = require("./Folder/folders-router");
 
 const app = express();
 
@@ -10,14 +10,7 @@ const morganOption = NODE_ENV === "production" ? "tiny" : "common";
 
 app.use(morgan(morganOption));
 
-app.get("/folders", (req, res, next) => {
-  const knexInstance = req.app.get("db");
-  FolderService.getAllFolders(knexInstance)
-    .then(folders => {
-      res.json(folders);
-    })
-    .catch(next);
-});
+app.use(FolderRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello, world!");
