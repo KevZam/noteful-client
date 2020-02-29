@@ -46,47 +46,47 @@ NoteRouter.route("/")
       .catch(next);
   });
 
-// NoteRouter.route("/:id")
-//   .all((req, res, next) => {
-//     NoteService.getById(req.app.get("db"), req.params.id)
-//       .then(note => {
-//         if (!note) {
-//           return res.status(404).json({
-//             error: { message: `Note doesn't exist` }
-//           });
-//         }
-//         res.note = note;
-//         next();
-//       })
-//       .catch(next);
-//   })
-//   .get((req, res, next) => {
-//     res.json(serializeNote(res.note));
-//   })
-//   .delete((req, res, next) => {
-//     NoteService.deleteNote(req.app.get("db"), req.params.id)
-//       .then(numRowsAffected => {
-//         res.status(204).end();
-//       })
-//       .catch(next);
-//   })
-//   .patch(jsonParser, (req, res, next) => {
-//     const { name, id } = req.body;
-//     const NoteToUpdate = { name };
+NoteRouter.route("/:id")
+  .all((req, res, next) => {
+    NoteService.getById(req.app.get("db"), req.params.id)
+      .then(note => {
+        if (!note) {
+          return res.status(404).json({
+            error: { message: `Note doesn't exist` }
+          });
+        }
+        res.note = note;
+        next();
+      })
+      .catch(next);
+  })
+  .get((req, res, next) => {
+    res.json(serializeNote(res.note));
+  })
+  .delete((req, res, next) => {
+    NoteService.deleteNote(req.app.get("db"), req.params.id)
+      .then(numRowsAffected => {
+        res.status(204).end();
+      })
+      .catch(next);
+  })
+  .patch(jsonParser, (req, res, next) => {
+    const { name, content, folder, date_modified } = req.body;
+    const NoteToUpdate = { name, content, folder, date_modified };
 
-//     const numberOfValues = Object.values(NoteToUpdate).filter(Boolean).length;
-//     if (numberOfValues === 0)
-//       return res.status(400).json({
-//         error: {
-//           message: `Request body must contain either 'name' or  'id'`
-//         }
-//       });
+    const numberOfValues = Object.values(NoteToUpdate).filter(Boolean).length;
+    if (numberOfValues === 0)
+      return res.status(400).json({
+        error: {
+          message: `Request body must contain either 'name' or  'id'`
+        }
+      });
 
-//     NoteService.updateNote(req.app.get("db"), req.params.id, NoteToUpdate)
-//       .then(numRowsAffected => {
-//         res.status(204).end();
-//       })
-//       .catch(next);
-//   });
+    NoteService.updateNote(req.app.get("db"), req.params.id, NoteToUpdate)
+      .then(numRowsAffected => {
+        res.status(204).end();
+      })
+      .catch(next);
+  });
 
 module.exports = NoteRouter;
