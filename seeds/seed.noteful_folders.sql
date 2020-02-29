@@ -1,6 +1,6 @@
-INSERT INTO folders (name, id)
+INSERT INTO folders (name)
 VALUES
-('Important', 1),
-('Super', 2),
-('Spangley', 3);
+('Important'),
+('Super'),
+('Spangley');
 

@@ -1,4 +1,3 @@
-const path = require("path");
 const express = require("express");
 const FolderService = require("./folder-service");
 const xss = require("xss");
@@ -10,7 +9,7 @@ const serializeFolder = folder => ({
   name: xss(folder.name)
 });
 
-FolderRouter.route("/folders")
+FolderRouter.route("/")
   .get((req, res, next) => {
     const knexInstance = req.app.get("db");
     FolderService.getAllFolders(knexInstance)
@@ -41,29 +40,47 @@ FolderRouter.route("/folders")
       .catch(next);
   });
 
-// bookmarkRouter
-//   .route("/bookmarks/:id")
-//   .get((req, res) => {
-//     const { id } = req.params;
-//     const bookMark = bookmarks.find(bid => bid.id == id);
-//     if (!bookMark) {
-//       logger.error(`Bookmark with id ${id} not found.`);
-//       return res.status(404).send("Bookmark Not Found");
-//     }
+FolderRouter.route("/:id")
+  .all((req, res, next) => {
+    FolderService.getById(req.app.get("db"), req.params.id)
+      .then(folder => {
+        if (!folder) {
+          return res.status(404).json({
+            error: { message: `Folder doesn't exist` }
+          });
+        }
+        res.folder = folder;
+        next();
+      })
+      .catch(next);
+  })
+  .get((req, res, next) => {
+    res.json(serializeFolder(res.folder));
+  })
+  .delete((req, res, next) => {
+    FolderService.deleteFolder(req.app.get("db"), req.params.id)
+      .then(numRowsAffected => {
+        res.status(204).end();
+      })
+      .catch(next);
+  })
+  .patch(jsonParser, (req, res, next) => {
+    const { name, id } = req.body;
+    const FolderToUpdate = { name };
 
-//     res.json(bookMark);
-//   })
-//   .delete((req, res) => {
-//     const { id } = req.params;
-//     bookMarkIndex = bookmarks.findIndex(bm => bm.id == id);
-//     if (bookMarkIndex === -1) {
-//       logger.error(`Bookmark with id ${id} not found.`);
-//       return res.status(404).send("Not Found");
-//     }
+    const numberOfValues = Object.values(FolderToUpdate).filter(Boolean).length;
+    if (numberOfValues === 0)
+      return res.status(400).json({
+        error: {
+          message: `Request body must contain either 'name' or  'id'`
+        }
+      });
 
-//     bookmarks.splice(bookMarkIndex, 1);
-//     logger.info(`Bookmark with id ${id} deleted.`);
-//     res.status(204).end();
-//   });
+    FolderService.updateFolder(req.app.get("db"), req.params.id, FolderToUpdate)
+      .then(numRowsAffected => {
+        res.status(204).end();
+      })
+      .catch(next);
+  });
 
 module.exports = FolderRouter;
